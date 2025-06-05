@@ -8,8 +8,34 @@
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "app.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "https://yourchats.web.app",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "X-Requested-With, Content-Type, Accept, Authorization",
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Max-Age": "86400"
+      }
+    },
+    {
+      "src": "/socket.io/(.*)",
+      "dest": "app.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "https://yourchats.web.app",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Credentials": "true"
+      }
+    },
+    {
       "src": "/(.*)",
       "dest": "app.js"
     }
-  ]
+  ],
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  }
 } 
