@@ -11,7 +11,7 @@ const conversationRoutes = require('./routes/conversationRoutes');
 
 require('dotenv').config();
 
-// Connect DB
+// Import DB connection
 require('./db/connection');
 
 // Import Files
@@ -23,7 +23,16 @@ const Messages = require('./models/Messages');
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors());
+// CORS configuration
+app.use(cors({
+	origin: ['https://yourchats.web.app', 'http://localhost:3000', 'https://*.vercel.app'],
+	methods: ['GET', 'POST', 'OPTIONS'],
+	allowedHeaders: ['Content-Type', 'Authorization'],
+	credentials: true,
+	preflightContinue: false,
+	optionsSuccessStatus: 204
+}));
+
 app.use(express.json());
 
 // Routes
@@ -31,17 +40,13 @@ app.use('/api/users', userRoutes);
 app.use('/api/message', messageRoutes);
 app.use('/api/conversations', conversationRoutes);
 
-// MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/chat-app';
-mongoose.connect(MONGODB_URI)
-	.then(() => console.log('Connected to MongoDB'))
-	.catch((err) => console.error('MongoDB connection error:', err));
-
 // Socket.io
 const io = new Server(server, {
 	cors: {
-		origin: process.env.CLIENT_URL || "http://localhost:3000",
-		methods: ["GET", "POST"]
+		origin: ['https://yourchats.web.app', 'http://localhost:3000', 'https://*.vercel.app'],
+		methods: ['GET', 'POST', 'OPTIONS'],
+		allowedHeaders: ['Content-Type', 'Authorization'],
+		credentials: true
 	}
 });
 
@@ -319,10 +324,26 @@ app.get('/api/search/:email', async (req, res) => {
 	}
 });
 
+// Add error handling middleware
+app.use((err, req, res, next) => {
+	console.error('Error:', err);
+	res.status(500).json({ message: 'Internal server error', error: err.message });
+});
+
+// Add request logging middleware
+app.use((req, res, next) => {
+	console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+	next();
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
-	res.status(200).json({ status: 'ok' })
-})
+	res.status(200).json({ 
+		status: 'ok',
+		timestamp: new Date().toISOString(),
+		uptime: process.uptime()
+	});
+});
 
 server.listen(port, () => {
 	console.log(`Server running on port ${port}`);
